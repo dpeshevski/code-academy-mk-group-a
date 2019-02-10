@@ -5,5 +5,6 @@ const userRoute = Router();
 
 userRoute.get('/users', actions.list);
 userRoute.get('/users/:id', actions.get);
+userRoute.post('/users', actions.create);
 
 export default userRoute;
