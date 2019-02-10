@@ -4,6 +4,8 @@ import cors from 'cors';
 import logger from 'morgan';
 import helmet from 'helmet';
 
+import indexRouter from './indexRouter/index';
+
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -15,6 +17,8 @@ app.use(bodyParser.urlencoded({
   extended: false
 }));  // basically tells the system whether you want to use a simple algorithm for shallow parsing (i.e. false) or complex algorithm for deep parsing that can deal with nested objects (i.e. true).
 app.use(bodyParser.json()); // basically tells the system that you want json to be used
+
+app.use(indexRouter);
 
 // API listener
 app.listen(port, () => {
