@@ -24,7 +24,6 @@ export default (sequelize, DataType) => {
     },
     createdAt: {
       type: DataType.DATE,
-      default: new Date(Date.now()),
     },
     updatedAt: {
       type: DataType.DATE
