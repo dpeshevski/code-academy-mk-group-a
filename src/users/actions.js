@@ -1,11 +1,16 @@
 import axios from 'axios';
 import fs from 'fs';
+import hat from 'hat';
 
 import urlsConfigs from '../../config/urls.json';
+
+import models from '../models/index';
 
 const baseUrl = urlsConfigs[process.env.NODE_ENV || 'dev'];
 const getUsersUrl = baseUrl.users;
 const { users } = baseUrl;
+
+const Users = models.Users;
 
 // listing users
 async function list(req, res, next) {
@@ -47,6 +52,84 @@ const get = async(req, res, next) => {
   }
   await next;
 };
+
+const getUsersWithInclude = async (req, res, next) => {
+  const result: Object = await Users.findAll({
+    include: [
+      {
+        model: models.Posts,
+        include: [
+          {
+            model: models.Comments
+          }
+        ]
+      }
+    ]
+  });
+
+  const resObj = result.map(user => {
+    return Object.assign(
+      {},
+      {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+        posts: user.posts.map(post => {
+          return Object.assign(
+            {},
+            {
+              postId: post.id,
+              userId: post.userId,
+              content: post.content,
+              comments: post.comments.map(comment => {
+                return Object.assign(
+                  {},
+                  {
+                    commentId: comment.id,
+                    postId: comment.postId,
+                    commenterUsername: comment.commenterUsername,
+                    commenterEmail: comment.commenterEmail,
+                    content: comment.content
+                  }
+                )
+              })
+            }
+          )
+        })
+      }
+    )
+  });
+  res.status(200).json(resObj);
+
+  await next;
+}
+
+const listAllUsers = async (req, res, next) => {
+  const results: Array = await Users.findAll();
+  res.status(200).send(results);
+  await next;
+}
+
+const registerUser = async (req, res, next) => {
+  const {
+    email,
+    name
+  }: {
+    email: string,
+    name: string
+  } = req.body;
+
+  const userId = hat();
+
+  await Users.create({
+    id: userId,
+    name,
+    email
+  });
+  res.status(201).send({ info: 'User has been created!'});
+
+  await next;
+}
 
 // create user
 const create = async (req, res, next) => {
@@ -180,7 +263,10 @@ const del = async (req, res, next) => {
 export default {
   list,
   get,
+  getUsersWithInclude,
+  listAllUsers,
   create,
   update,
+  registerUser,
   del,
 };
